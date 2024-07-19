@@ -14,7 +14,7 @@ impl Metadata for ProxyMetadata {
     type State = ();
 }
 
-#[derive(TypeInfo, Encode, Decode)]
+#[derive(TypeInfo, Encode, Decode, Debug)]
 #[codec(crate = gstd::codec)]
 #[scale_info(crate = gstd::scale_info)]
 pub enum Action { // arbitrary actions should be supported in the dApp (defined by dApp author)
@@ -25,12 +25,12 @@ pub enum Action { // arbitrary actions should be supported in the dApp (defined 
     },
 }
 
-#[derive(TypeInfo, Encode, Decode, Debug)]
+#[derive(TypeInfo, Encode, Decode, Debug, PartialEq)]
 #[codec(crate = gstd::codec)]
 #[scale_info(crate = gstd::scale_info)]
 pub enum Event { // arbitrary replies to the action
     Hello, 
     Fine,
     Number(u8),
-    MessageSent, // event confirming successful message sent from Proxy to Target
+    MessageAlreadySent, // event confirming successful message sent from Proxy to Target
 }
