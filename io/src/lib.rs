@@ -33,4 +33,5 @@ pub enum Event { // arbitrary replies to the action
     Fine,
     Number(u8),
     MessageAlreadySent, // event confirming successful message sent from Proxy to Target
+    NoReplyReceived,
 }

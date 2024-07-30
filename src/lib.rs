@@ -48,19 +48,28 @@ extern "C" fn handle() {
             debug!("HANDLE: SessionStatus::Waiting");
             let msg_id = msg::send(session.target_program_id, action, 0)
                 .expect("Error in sending a message");
-            debug!("HANDLE: SessionStatus::Sent");
+
+            debug!("HANDLE: SessionStatus::MessageSent");
             session.session_status = SessionStatus::MessageSent;
             session.msg_ids = (msg_id, msg::id());
             debug!("HANDLE: WAIT");
-            exec::wait();
+            exec::wait_for(3);
         }
         SessionStatus::MessageSent => {
-            debug!("HANDLE: SessionStatus::MessageSent");
-            msg::reply(Event::MessageAlreadySent, 0).expect("Error in sending a reply");
+            if msg::id() == session.msg_ids.1 {
+                debug!("HANDLE: No response was received");
+                msg::reply(Event::NoReplyReceived, 0).expect("Error in sending a reply");
+                debug!("HANDLE: SessionStatus::Waiting");
+                session.session_status = SessionStatus::Waiting;
+            } else {
+                debug!("HANDLE: Event::MessageAlreadySent");
+                msg::reply(Event::MessageAlreadySent, 0).expect("Error in sending a reply");
+            }
         }
         SessionStatus::ReplyReceived(reply_message) => {
-            debug!("HANDLE: SessionStatus::ReplyReceived({:?})", reply_message);
+            debug!("HANDLE: SessionStatus::ReplyReceived");
             msg::reply(reply_message, 0).expect("Error in sending a reply");
+            debug!("HANDLE: SessionStatus::Waiting");
             session.session_status = SessionStatus::Waiting;
         }
     }
