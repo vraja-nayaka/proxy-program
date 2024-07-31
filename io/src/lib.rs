@@ -17,7 +17,15 @@ impl Metadata for ProxyMetadata {
 #[derive(TypeInfo, Encode, Decode, Debug)]
 #[codec(crate = gstd::codec)]
 #[scale_info(crate = gstd::scale_info)]
-pub enum Action { // arbitrary actions should be supported in the dApp (defined by dApp author)
+pub enum Action {
+    SendMessage(MessageAction), // action to send a message to the target program
+    CheckReply,                 // action to check for a response
+}
+
+#[derive(TypeInfo, Encode, Decode, Debug)]
+#[codec(crate = gstd::codec)]
+#[scale_info(crate = gstd::scale_info)]
+pub enum MessageAction {
     Hello,
     HowAreYou,
     MakeRandomNumber{
@@ -28,10 +36,12 @@ pub enum Action { // arbitrary actions should be supported in the dApp (defined 
 #[derive(TypeInfo, Encode, Decode, Debug, PartialEq)]
 #[codec(crate = gstd::codec)]
 #[scale_info(crate = gstd::scale_info)]
-pub enum Event { // arbitrary replies to the action
+pub enum Event {
     Hello, 
     Fine,
     Number(u8),
-    MessageAlreadySent, // event confirming successful message sent from Proxy to Target
+    MessageSent,
+    MessageAlreadySent,
+    WrongStatus,
     NoReplyReceived,
 }

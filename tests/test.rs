@@ -1,6 +1,6 @@
 use gstd::ActorId;
 use gtest::{Log, Program, System};
-use io::{Action, Event};
+use io::{Action, MessageAction, Event};
 
 const USER: u64 = 3;
 const TARGET_PROGRAM_ADDRESS: u64 = 2;
@@ -19,23 +19,33 @@ fn test() {
     let result = proxy_program.send(USER, target_program_address);
     assert!(!result.main_failed());
 
-    let result = proxy_program.send(USER, Action::MakeRandomNumber{range: 1});
+    let result = proxy_program.send(USER, Action::SendMessage(MessageAction::MakeRandomNumber{range: 1}));
     assert!(!result.main_failed());
-    
-    // user attempts to send another message to a proxy program while it is still processing the first message. It is expected that the proxy program will reply with the event `MessageAlreadySent`.
-    let result = proxy_program.send(USER, Action::MakeRandomNumber{range: 1});
+
     let log = Log::builder()
         .source(1)
         .dest(3)
-        .payload(Event::MessageAlreadySent);
+        .payload(Event::MessageSent);
+
     assert!(result.contains(&log));
 
-    let result = system.spend_blocks(3);
+    let result = proxy_program.send(USER, Action::SendMessage(MessageAction::MakeRandomNumber{range: 1}));
+    assert!(!result.main_failed());
 
+    let log = Log::builder()
+        .source(1)
+        .dest(3)
+        .payload(Event::WrongStatus);
+
+    assert!(result.contains(&log));
+
+    system.spend_blocks(3);
+
+    let mailbox = system.get_mailbox(USER);
     let log = Log::builder()
         .source(1)
         .dest(3)
         .payload(Event::NoReplyReceived);
 
-    assert!(result[0].contains(&log));
+    assert!(mailbox.contains(&log));
 }
